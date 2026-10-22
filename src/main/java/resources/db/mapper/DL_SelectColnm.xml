@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <entry key="dl_selectcolnm">
+        SELECT
+              COLUMN_NAME
+             ,TABLE_NAME
+         FROM  information_schema.COLUMNS
+        WHERE TABLE_NAME = ?
+        ORDER BY ORDINAL_POSITION;
+    </entry>
+
+</properties>
