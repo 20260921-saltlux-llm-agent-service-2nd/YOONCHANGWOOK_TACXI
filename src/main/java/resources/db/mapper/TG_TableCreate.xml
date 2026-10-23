@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>TableGen Repository SQL</comment>
+
+    <!-- 테이블 양식에 맞게 테이블 생성하는 SQL -->
+    <entry key="createTable">
+        CREATE TABLE IF NOT EXISTS '%s' (               <!--테이블 이름-->
+        %s                                              <!--컬럼 조각 조립된 문자열-->
+        )
+    </entry>
+
+    <!-- '컬럼명' 자료형(크기) NULL여부, DEFAULT, COMMENT-->
+    <entry key="columnDef">
+        '%s' %s %s %s %s
+    </entry>
+
+    <!-- default가 존재하면 DEFAULT 키워드 추가-->
+    <entry key="defaultDef">
+        DEFAULT '%s'
+    </entry>
+
+    <!-- comment가 존재하면 COMMENT 키워드 추가-->
+    <entry key="commentDef">
+        COMMENT '%s'
+    </entry>
+
+    <!-- primary 이면, 따로 primary 구문 추가-->
+    <entry key="primaryKey">
+        PRIMARY KEY (%S)
+    </entry>
+
+</properties>
