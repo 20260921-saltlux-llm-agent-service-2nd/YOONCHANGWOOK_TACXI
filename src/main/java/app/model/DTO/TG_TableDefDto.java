@@ -13,7 +13,7 @@ public class TG_TableDefDto {
     private String tableName;
     private String colDataType;
     private String columnNm;
-    private String columnSize;
+    private String colum;
     private String nullYn;
     private String pkYn;
     private String fkYn;
@@ -21,4 +21,5 @@ public class TG_TableDefDto {
     private String refColNm;
     private String defaultStr;
     private String comment;
+    private String lschgDtm;
 }
