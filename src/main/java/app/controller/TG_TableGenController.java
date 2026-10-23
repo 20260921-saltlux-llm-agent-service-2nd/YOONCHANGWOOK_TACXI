@@ -23,7 +23,7 @@ public class TG_TableGenController {
 
             for (Map.Entry<String, List<TG_TableDefDto>> e : byTable.entrySet()) {
                 String ddl = buildCreateTable(e.getKey(), e.getValue());            // DDL 조립
-                System.out.println(ddl);                                            // 테스트용: 만들어진 SQL 확인
+//                System.out.println(ddl);                                            // 테스트용: 만들어진 SQL 확인
                 tgRepo.execute(conn, ddl);                                          // 실행
                 created.add(e.getKey());
             }
