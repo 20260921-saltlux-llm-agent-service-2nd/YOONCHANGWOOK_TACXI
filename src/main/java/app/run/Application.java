@@ -1,6 +1,7 @@
 package app.run;
 
 import app.controller.DL_Controller;
+import app.controller.DUL_Controller;
 import app.controller.UserController;
 
 import java.util.NoSuchElementException;
@@ -82,8 +83,12 @@ public class Application {
                         break;
                     }
                 case 3:
-                    // 데이터 UNLOAD
-                    break;
+                    // 데이터 UNLOAD dataunload
+                    if(dataunload(sc)) {
+                        return;
+                    } else {
+                        break;
+                    }
                 case 9:
                     return;
                 default:
@@ -126,10 +131,25 @@ public class Application {
         String table_nm = sc.nextLine().trim();
         System.out.println("Load를 원하시는 csv파일의 경로를 입력해주세요(/로 디렉토리 구분):");
         String targetPath = sc.nextLine().trim();
-        System.out.println("Load프로그램을 호출중입니다, 기다려 주세요 :");
+        System.out.println("Load프로그램을 호출중입니다, 기다려 주세요");
         DL_Controller dlController = new DL_Controller();
 
         boolean result = dlController.StartDL_Controller(table_nm,targetPath);
+
+        return result;
+
+    }
+    private static boolean dataunload(Scanner sc) {
+        System.out.println();
+        System.out.println("===== dataunload =====\n");
+        System.out.println("UnLoad를 원하시는 테이블 명(물리명)을 입력해주세요 :");
+        String table_nm = sc.nextLine().trim();
+        System.out.println("UnLoad를 원하시는 csv파일의 경로를 입력해주세요(/로 디렉토리 구분):");
+        String targetPath = sc.nextLine().trim();
+        System.out.println("UnLoad프로그램을 호출중입니다, 기다려 주세요");
+        DUL_Controller dulController = new DUL_Controller();
+
+        boolean result = dulController.StartDUL_Controller(table_nm,targetPath);
 
         return result;
 
