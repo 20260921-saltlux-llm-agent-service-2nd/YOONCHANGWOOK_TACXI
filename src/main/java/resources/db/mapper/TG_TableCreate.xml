@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>TableGen Repository SQL</comment>
+    <!-- Member번호에 따른 테이블 조회-->
+    <entry key="tg_selectDefinitions">
+        SELECT * FROM TB_GEN_MAN_MNTR_TABLE
+        WHERE MEMBER_SQNO = ?
+        ORDER BY GEN_MNTR_SQNO
+    </entry>
+
+    <!-- 테이블 양식에 맞게 테이블 생성하는 SQL -->
+    <entry key="tg_createTable">
+        CREATE TABLE IF NOT EXISTS `%s` (               <!--테이블 이름-->
+        %s                                              <!--컬럼 조각 조립된 문자열-->
+        )
+    </entry>
+
+    <!-- '컬럼명' 자료형(크기) NULL여부, DEFAULT, COMMENT-->
+    <entry key="tg_columnDef">
+        `%s` %s %s %s %s
+    </entry>
+
+    <!-- default가 존재하면 DEFAULT 키워드 추가-->
+    <entry key="tg_defaultDef">
+        DEFAULT '%s'
+    </entry>
+
+    <!-- comment가 존재하면 COMMENT 키워드 추가-->
+    <entry key="tg_commentDef">
+        COMMENT '%s'
+    </entry>
+
+    <!-- primary 이면, 따로 primary 구문 추가-->
+    <entry key="tg_primaryKey">
+        PRIMARY KEY (%s)
+    </entry>
+
+    <!-- 컬럼이 모두 만들어지고 DateTime 구문 추가-->
+    <entry key="tg_lschgDtm">
+        `LSCHG_DTM` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    </entry>
+
+</properties>

@@ -3,6 +3,7 @@ package app.run;
 import app.controller.DL_Controller;
 import app.controller.DUL_Controller;
 import app.controller.UserController;
+import app.view.TG_TableView;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -55,6 +56,8 @@ public class Application {
             switch (choice) {
                 case 1:
                     // 테이블 생성
+                    TG_TableView tgView = new TG_TableView();
+                    tgView.createTableConsole();
                     break;
                 case 2:
                     tableMenu(sc);
