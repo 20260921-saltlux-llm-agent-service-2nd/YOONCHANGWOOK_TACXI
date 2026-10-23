@@ -24,10 +24,6 @@ public class DL_Repository {
     private final String DL_SelectcolnmQry_path = "src/main/java/resources/db/mapper/DL_SelectColnm.xml";
 
 
-    public DL_Repository () {
-
-    }
-
     public  List<DL_SelectColnmDTO> selectColnmDTOList (String table_nm) {
 
         //1. 객체 선언 및 초기화
@@ -106,7 +102,6 @@ public class DL_Repository {
             }
         }
         String qry = String.format(prop.getProperty("dl_inserttoTable"), table_nm, colList, marks);
-        System.out.println(qry);
 
         //4. 연결 / PreparedStatement 생성 (한 번만) 후 CSV 읽어서 적재
         try (BufferedReader br = new BufferedReader(
