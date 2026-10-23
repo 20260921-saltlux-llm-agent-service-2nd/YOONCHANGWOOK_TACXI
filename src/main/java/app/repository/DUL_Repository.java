@@ -64,7 +64,10 @@ public class DUL_Repository {
             while (rst.next()) {
                 instance.setLength(0);
                 for (int i = 1; i <= colCnt; i++) {
+
+                    // 첫칼럼이 아닐경우 쉼표 APPEND
                     if (i > 1) instance.append(",");
+
                     String val = rst.getString(i);
                     instance.append(val == null ? "" : escapeCsv(val));
                 }
