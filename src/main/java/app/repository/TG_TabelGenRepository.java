@@ -18,7 +18,7 @@ public class TG_TabelGenRepository {
     private  final Properties P = new Properties();
 
     // [사용자 정의 테이블 조회]
-    public List<TG_TableDefDto> findDefinitions(String userid) throws SQLException {
+    public List<TG_TableDefDto> findDefinitions(String userid,String table_nm) throws SQLException {
         List<TG_TableDefDto> list = new ArrayList<>();
         Connection conn = getConnection();
 
@@ -26,6 +26,7 @@ public class TG_TabelGenRepository {
 
         try (PreparedStatement ps = conn.prepareStatement(defineQry) ) {
             ps.setString(1, userid);
+            ps.setString(2, table_nm);
 //            ps.setString(2, table_name);
             try (ResultSet rs = ps.executeQuery()) {           // SELECT 실행
                 while (rs.next()) {                            // 한 행씩 이동

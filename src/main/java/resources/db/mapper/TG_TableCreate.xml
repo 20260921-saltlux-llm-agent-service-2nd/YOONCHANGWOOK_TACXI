@@ -7,6 +7,7 @@
         SELECT A.*
         FROM TB_GEN_MAN_MNTR_TABLE A join TB_MEMBER B on A.MEMBER_SQNO = B.MEMBER_SQNO
         WHERE MEMBER_ID = ?
+        AND TABLE_NAME =?
         ORDER BY GEN_MNTR_SQNO
     </entry>
 

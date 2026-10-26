@@ -1,6 +1,8 @@
 package app.run;
 
 import app.controller.*;
+import app.model.DTO.UserDto;
+import app.repository.TG_TabelGenRepository;
 import app.view.TG_TableView;
 
 import java.util.NoSuchElementException;
@@ -9,6 +11,8 @@ import java.util.Scanner;
 public class Application {
 
     public static void main(String[] args) {
+
+
 
         try (Scanner sc = new Scanner(System.in)) {
             UserController controller = new UserController();
@@ -32,7 +36,7 @@ public class Application {
                     break;
                 case 2:
                     if (login(sc, userController)) {
-                        midCatMenu(sc);
+                        midCatMenu(sc, userController);
                     } else {
                         System.out.println("로그인에 실패하였습니다. 다시 입력해주세요.");
                     }
@@ -46,7 +50,7 @@ public class Application {
         }
     }
 
-    private static void midCatMenu(Scanner sc) {
+    private static void midCatMenu(Scanner sc, UserController userController) {
         while (true) {
             printMidCatMenu();
             int choice = readInt(sc);
@@ -54,7 +58,7 @@ public class Application {
             switch (choice) {
                 case 1:
                     // 테이블 생성
-                    if (createUserTable(sc)) {
+                    if (createUserTable(sc,userController)) {
 
                     };
                     break;
@@ -172,15 +176,22 @@ public class Application {
         return true;
     }
 
-    private static boolean createUserTable(Scanner sc) {
+    private static boolean createUserTable(Scanner sc, UserController userController) {
         System.out.println();
         System.out.println("===== 사용자 테이블 정의서 경로 입력 =====\n");
         System.out.println("테이블 정의서가 저장된 디렉토리 경로(/으로 구분)를 입력해주세요.");
         String targetPath = sc.nextLine().trim();
-        TG_TableCsvController tgTableCsvController = new TG_TableCsvController();
-        tgTableCsvController.readCsv(targetPath);
-        System.out.println();
+        TG_TableGenController tgTableGenController = new TG_TableGenController();
+        TG_TabelGenRepository tgRepo = new TG_TabelGenRepository();
+        UserDto loginuser = userController.loginUser;
 
+
+        boolean readCsvResult =  tgTableGenController.readCsv(targetPath,userController);
+        System.out.println();
+        if(readCsvResult) {
+            tgRepo.findDefinitions(lo)
+
+        }
         System.out.println("===== 테이블 생성 =====\n");
         TG_TableView tgTableView = new TG_TableView();
         tgTableView.createTableConsole();

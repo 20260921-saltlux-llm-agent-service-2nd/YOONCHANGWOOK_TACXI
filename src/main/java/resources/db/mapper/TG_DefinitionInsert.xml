@@ -2,7 +2,7 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <entry key="tg_insertDefinition">INSERT INTO TB_GEN_MAN_MNTR_TABLE
-    (GEN_MNTR_SQNO, MEMBER_SQNO, TABLE_NAME, COL_DATA_TYPE, COLUMN_NM, COLUMN_SIZE, NULL_YN, PK_YN, FK_YN,
-    REF_TABLE_NM, REF_COLUMN, DEFAULT_STR, COL_COMMENT, LSCHG_DTM)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)</entry>
+    ( TABLE_NAME, COL_DATA_TYPE, COLUMN_NM, COLUMN_SIZE, NULL_YN, PK_YN, FK_YN,
+    REF_TABLE_NM, REF_COLUMN, DEFAULT_STR, COMMENT,MEMBER_SQNO)
+    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)</entry>
 </properties>

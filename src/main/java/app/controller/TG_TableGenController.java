@@ -1,19 +1,24 @@
 package app.controller;
 import app.model.DTO.TG_TableDefDto;
+import app.model.DTO.UserDto;
 import app.repository.TG_TabelGenRepository;
 import app.common.JDBCTemPlate;
 import app.view.TG_TableView;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
+
+import static app.common.JDBCTemPlate.close;
+import static app.common.JDBCTemPlate.getConnection;
 
 
 public class TG_TableGenController {
 
     // ===================== 1. 의존 객체 =====================
     private final TG_TabelGenRepository tgRepo = new TG_TabelGenRepository();
+    private final Properties prop = new Properties();
 
 
     //1-1.유저가 생성한 테이블 리스트 조회
@@ -37,7 +42,7 @@ public class TG_TableGenController {
         // 로그인 상태임
 
         // Table명을 받아서 그 이름에 해당하는 테이블 조회하기
-        try (Connection conn = JDBCTemPlate.getConnection()) {
+        try (Connection conn = getConnection()) {
             // dfs dto 리스트에 담긴 테이블 내용 읽기
             Map<String, List<TG_TableDefDto>> byTable = groupByTable(defs);
 
@@ -84,7 +89,7 @@ public class TG_TableGenController {
             // 2. 크기: CHAR, VARCHAR, DECIMAL, NUMERIC만
             switch (type) {
                 case "CHAR": case "VARCHAR": case "DECIMAL": case "NUMERIC":
-                    if (!isEmpty(d.getColum())) createqry.append('(').append(d.getColum().trim()).append(')');
+                    if (!isEmpty(d.getColumSize())) createqry.append('(').append(d.getColumSize().trim()).append(')');
                     break;
                 default:
                     break;
@@ -146,6 +151,66 @@ public class TG_TableGenController {
 
         createqry.append("\n)");
         return createqry.toString();
+    }
+    public boolean readCsv(String path, UserController userController) {
+
+        PreparedStatement psmt = null;
+        Connection conn = getConnection();
+        String readline ;
+        String [] temp_arr ;
+        UserDto loginUser = userController.loginUser;
+        String  tablenm;
+
+
+
+        try (FileInputStream fis = new FileInputStream("src/main/java/resources/db/mapper/TG_DefinitionInsert.xml")) {
+            prop.loadFromXML(fis);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        // 파일 읽기
+        try(BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8))) {
+
+
+            String qry = prop.getProperty("tg_insertDefinition");
+            psmt = conn.prepareStatement(qry);
+            br.readLine();
+
+            while((readline = br.readLine()) != null) {
+
+                int i;
+                if(readline.length() !=0) {
+
+                    temp_arr = readline.split(",",0);
+                    for (i = 0; i < 11; i++) {
+
+                        psmt.setString(i+1,temp_arr[i].isEmpty() ? null : temp_arr[i] );
+
+                    }
+                    psmt.setInt(i+1,loginUser.getMemberSqno());
+
+                    psmt.executeUpdate();
+                }
+
+            }
+            return true;
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            //5. 자원 반납
+            close(psmt);
+            close(conn);
+        }
+
+
+
     }
 
     private boolean isEmpty(String s) {
