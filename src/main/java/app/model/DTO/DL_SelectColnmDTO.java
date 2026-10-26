@@ -12,6 +12,7 @@ public class DL_SelectColnmDTO {
 
     private String colnm;
     private String table_nm;
+    private String column_default;
 
 
 }
