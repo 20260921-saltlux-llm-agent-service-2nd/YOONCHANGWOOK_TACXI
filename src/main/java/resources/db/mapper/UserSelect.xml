@@ -6,4 +6,8 @@
        SELECT * FROM TB_MEMBER;
     </entry>
 
+    <entry key="selectMemberByMemberId">
+        select * from TB_MEMBER
+        where MEMBER_ID = ?
+    </entry>
 </properties>
