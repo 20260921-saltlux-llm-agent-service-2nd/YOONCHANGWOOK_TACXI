@@ -1,8 +1,10 @@
 package app.view;
 
-import app.repository.UserRepository;
 
 public class UserView {
 
-    UserRepository userRepository;
+
+    public void displayMessage(String message) {
+        System.out.println(message);
+    }
 }
