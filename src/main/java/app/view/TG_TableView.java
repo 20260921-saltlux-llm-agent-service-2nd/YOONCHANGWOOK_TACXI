@@ -15,8 +15,13 @@ public class TG_TableView {
         String memberId = sc.nextLine().trim();
 
         try {
-            // list에 그러면 Table name에 해당하는 거 가져오기
-            System.out.println("테이블 생성 완료: " + controller.createTables(list));
+            // 회원이 등록한 사용자 정의서 테이블 조회
+            List<TG_TableDefDto> list = controller.usercreatedTables(memberId);
+            if (list == null || list.isEmpty()) {
+                System.out.println("등록된 테이블 정의서가 없습니다.");
+                return;
+            }
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return;                                    // 실패하면 최초 화면으로

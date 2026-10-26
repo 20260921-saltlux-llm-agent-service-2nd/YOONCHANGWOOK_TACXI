@@ -1,6 +1,8 @@
 package app.repository;
 
 import app.model.DTO.TG_TableDefDto;
+import app.model.DTO.UserDto;
+
 import java.io.*;
 import java.sql.*;
 import java.util.*;
@@ -39,8 +41,9 @@ public class TG_TabelGenRepository {
                     d.setColumSize(Objects.toString(rs.getString("COLUMN_SIZE"), ""));
                     d.setNullYn(Objects.toString(rs.getString("NULL_YN"), ""));
                     d.setPkYn(Objects.toString(rs.getString("PK_YN"), ""));
+                    d.setFkYn(Objects.toString(rs.getString("FK_YN"), ""));
                     d.setRefTableNm(Objects.toString(rs.getString("REF_TABLE_NM"), ""));
-                    d.setRefColumn(Objects.toString(rs.getString("REF_TABLE_NM"), ""));
+                    d.setRefColumn(Objects.toString(rs.getString("REF_COLMN"), ""));
                     d.setDefaultStr(Objects.toString(rs.getString("DEFAULT_STR"), ""));
                     d.setComment(Objects.toString(rs.getString("COMMENT"), ""));
                     d.setLschgDtm(rs.getString("LSCHG_DTM"));

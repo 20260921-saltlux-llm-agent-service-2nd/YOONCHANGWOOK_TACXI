@@ -5,6 +5,7 @@ import app.model.DTO.UserDto;
 import app.repository.TG_TabelGenRepository;
 import app.view.TG_TableView;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -181,17 +182,39 @@ public class Application {
         System.out.println("===== 사용자 테이블 정의서 경로 입력 =====\n");
         System.out.println("테이블 정의서가 저장된 디렉토리 경로(/으로 구분)를 입력해주세요.");
         String targetPath = sc.nextLine().trim();
-        TG_TableGenController tgTableGenController = new TG_TableGenController();
-        TG_TabelGenRepository tgRepo = new TG_TabelGenRepository();
-        UserDto loginuser = userController.loginUser;
 
+        // getLoginUser -> userDto 타입의 메소드로 private인 loginUser을 반환하도록함
+        UserDto loginUser = userController.getLoginUser();
 
-        boolean readCsvResult =  tgTableGenController.readCsv(targetPath,userController);
-        System.out.println();
-        if(readCsvResult) {
-            tgRepo.findDefinitions(lo)
-
+        // 로그인 상태 검증
+        if (loginUser == null) {
+            System.out.println("로그인이 필요합니다.");
+            return false;
         }
+
+        // 사용자 정의서를 읽고 사용자 정의서 테이블 생성
+        TG_TableGenController tgTableGenController = new TG_TableGenController();
+        try {
+            List<String> created = tgTableGenController.createTablesFromCsv(targetPath, loginUser);
+
+            if (created.isEmpty()) {
+                System.out.println("생성된 테이블이 없습니다.");
+                return false;
+            }
+
+            System.out.println("테이블 생성 완료: " + created);
+            return true;
+
+
+//        boolean readCsvResult = tgTableGenController.readCsv(targetPath, userController);
+//        System.out.println();
+//        if(readCsvResult) {
+//            tgRepo.findDefinitions()
+//
+//        }
+//            System.out.println("테이블 생성 완료: " + created);
+//            return true
+            // 사용자 정의서 테이블을 읽고 생성
         System.out.println("===== 테이블 생성 =====\n");
         TG_TableView tgTableView = new TG_TableView();
         tgTableView.createTableConsole();

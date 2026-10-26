@@ -20,28 +20,36 @@ public class TG_TableGenController {
     private final TG_TabelGenRepository tgRepo = new TG_TabelGenRepository();
     private final Properties prop = new Properties();
 
-
-    //1-1.유저가 생성한 테이블 리스트 조회
-    public void usercreatedTables(String userId) {
-        List<TG_TableDefDto> usercreatedtablelist = new ArrayList<>();
-        TG_TableView tgTableView = new TG_TableView();
+    // 1-1. 회원 ID로 유저가 생성한 테이블 정의서 조회
+    public List<TG_TableDefDto> usercreatedTables(String userId) {
         try {
-           usercreatedtablelist = tgRepo.userCreatedtables(userId);
-       } catch (SQLException e) {
-           throw new RuntimeException(e);
-       }
-        tgTableView.showuserCreatedtable(usercreatedtablelist);
-   }
+            return tgRepo.userCreatedtables(userId);
+        } catch (SQLException e) {
+            throw new RuntimeException("테이블 정의서 조회 실패", e);
+        }
+    }
 
     // ===================== 2. 공개 메서드 (View에서 호출) =====================
     /** 사용자 테이블 정의서 기준으로 DB 생성. 생성된 테이블명 목록 반환, 실패 시 예외 -> 콘솔 관련 기능들 **/
-    public List<String> createTables(List<TG_TableDefDto> defs) {
+    public List<String> createTables(String userId, String tableName) {
         List<String> created = new ArrayList<>();
-        StringBuilder createqry =  new StringBuilder();
+//        StringBuilder createqry =  new StringBuilder();
 
-        // 로그인 상태임
+        // 1. Repository에서 정의서 조회
+        List<TG_TableDefDto> defs;
 
-        // Table명을 받아서 그 이름에 해당하는 테이블 조회하기
+        try {
+            defs = tgRepo.findDefinitions(userId, tableName);
+        } catch (SQLException e) {
+            throw new RuntimeException("정의서 조회 실패", e);
+        }
+
+        // 2. 조회 결과 검증
+        if (defs == null || defs.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "테이블 정의서가 존재하지 않습니다.");
+        }
+
         try (Connection conn = getConnection()) {
             // dfs dto 리스트에 담긴 테이블 내용 읽기
             Map<String, List<TG_TableDefDto>> byTable = groupByTable(defs);
@@ -152,6 +160,7 @@ public class TG_TableGenController {
         createqry.append("\n)");
         return createqry.toString();
     }
+
     public boolean readCsv(String path, UserController userController) {
 
         PreparedStatement psmt = null;
@@ -208,11 +217,7 @@ public class TG_TableGenController {
             close(psmt);
             close(conn);
         }
-
-
-
     }
-
     private boolean isEmpty(String s) {
         return s == null || s.isBlank() || "null".equalsIgnoreCase(s.trim());
     }
