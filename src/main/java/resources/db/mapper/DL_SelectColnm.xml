@@ -6,6 +6,7 @@
         SELECT
               COLUMN_NAME
              ,TABLE_NAME
+             ,COLUMN_DEFAULT
          FROM  information_schema.COLUMNS
         WHERE TABLE_NAME = ?
         ORDER BY ORDINAL_POSITION;

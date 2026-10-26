@@ -4,6 +4,7 @@ import app.model.DTO.DL_SelectColnmDTO;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -89,23 +90,30 @@ public class DL_Repository {
             throw new RuntimeException(e);
         }
 
+        int col_size = 0;
         //3. 컬럼 목록 / 위치마크 / 쿼리 조립 (한 번만)
         for (int i = 0; i < ColnmDTOList.size(); i++) {
-            colList.append("`");
-            colList.append(ColnmDTOList.get(i).getColnm());
-            colList.append("`");
-            marks.append("?");
 
-            if (i < ColnmDTOList.size() - 1) {
-                colList.append(", ");
-                marks.append(", ");
+            if (!ColnmDTOList.get(i).getColnm().equals("LSCHG_DTM")) {
+
+                if (colList.length() > 0) {   // 이미 추가된 컬럼이 있으면 앞에 쉼표
+                    colList.append(", ");
+                    marks.append(", ");
+                }
+
+                colList.append("`");
+                colList.append(ColnmDTOList.get(i).getColnm());
+                colList.append("`");
+                marks.append("?");
+
+                col_size++;
             }
         }
         String qry = String.format(prop.getProperty("dl_inserttoTable"), table_nm, colList, marks);
 
         //4. 연결 / PreparedStatement 생성 (한 번만) 후 CSV 읽어서 적재
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(targetPath), Charset.forName("MS949")))) {
+                new InputStreamReader(new FileInputStream(targetPath), StandardCharsets.UTF_8))) {
 
             conn = getConnection();
             conn.setAutoCommit(false);
@@ -119,13 +127,16 @@ public class DL_Repository {
 
                     String[] temp_arr = readLine.split(",", -1);
 
+
+
                     // 컬럼 수와 값 개수가 다른 줄은 건너뜀
-                    if (temp_arr.length != ColnmDTOList.size()) {
+                    if (temp_arr.length != col_size) {
                         System.out.println("컬럼 수 불일치로 건너뜀(" + (cnt + 1) + "번째 줄)");
+                        System.out.println("ColnmDTOList = " + ColnmDTOList.size());
                     } else {
 
-                        //System.out.println("temp_arr = " + Arrays.toString(temp_arr));
-                        for (int i = 0; i < ColnmDTOList.size(); i++) {
+
+                        for (int i = 0; i <col_size; i++) {
                             // 빈 값은 NULL로 저장
                             psmt.setString(i + 1, temp_arr[i].isEmpty() ? null : temp_arr[i]);
                         }
