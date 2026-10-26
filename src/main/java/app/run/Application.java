@@ -11,8 +11,8 @@ public class Application {
     public static void main(String[] args) {
 
         try (Scanner sc = new Scanner(System.in)) {
-            //UserController controller = new UserController();
-            startProgram(sc/*, controller*/);
+            UserController controller = new UserController();
+            startProgram(sc, controller);
         } catch (IllegalStateException e) {
             System.out.println("데이터베이스 처리 중 오류가 발생했습니다.");
             System.out.println("db.properties 설정과 schema.sql 실행 상태를 확인하세요.");
@@ -21,7 +21,7 @@ public class Application {
         }
     }
 
-    private static void startProgram(Scanner sc/*, UserController userController*/) {
+    private static void startProgram(Scanner sc, UserController userController) {
         while (true) {
             printStartMenu();
             int choice = readInt(sc);
@@ -31,7 +31,7 @@ public class Application {
                     //signup(sc, userController);
                     break;
                 case 2:
-                    if (/*login(sc, userController)*/true) {
+                    if (login(sc, userController)) {
                         midCatMenu(sc);
                     } else {
                         System.out.println("로그인에 실패하였습니다. 다시 입력해주세요.");
@@ -220,7 +220,6 @@ public class Application {
         System.out.print("Password: ");
         String pwd = sc.nextLine().trim();
 
-        //return userController.login(id, pwd);
-        return true;
+        return userController.login(id, pwd);
     }
 }
