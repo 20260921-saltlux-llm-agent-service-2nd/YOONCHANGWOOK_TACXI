@@ -20,6 +20,184 @@ MySQL에서 초기 데이터를 적재하려면 테이블을 직접 생성하고
 ## 프로그램 구조
 
 프로그램은 테이블 생성, 데이터 적재, 데이터 추출 기능으로 구성됩니다.
+프로젝트 아키텍처 구조도
+1. 전체 파일 구조
+```text
+src/main
+├── java
+│   └── app
+│       ├── common
+│       │   └── JDBCTemPlate.java           # DB 연결 및 JDBC 자원 관리 등 공통 기능 제공
+│       │
+│       ├── controller
+│       │   ├── DL_Controller.java          # 데이터 Load 기능 실행 흐름 제어
+│       │   ├── DUL_Controller.java         # 데이터 UnLoad 기능 실행 흐름 제어
+│       │   ├── TG_TableGenController.java  # 사용자 정의서 등록 및 정의서 기반 테이블 생성 제어
+│       │   └── UserController.java         # 회원가입 및 로그인 처리 제어
+│       │
+│       ├── model
+│       │   └── DTO
+│       │       ├── DL_SelectColNmDTO.java  # 데이터 적재·추출에 필요한 컬럼 정보 전달
+│       │       ├── TG_TableDefDto.java     # 사용자 정의서의 테이블 및 컬럼 정의 정보 전달
+│       │       └── UserDto.java            # 회원 정보 전달
+│       │
+│       ├── repository
+│       │   ├── DL_Repository.java          # 데이터 Load 관련 SQL 실행 및 DB 작업
+│       │   ├── DUL_Repository.java         # 데이터 추출 관련 SQL 실행 및 DB 작업
+│       │   ├── TG_TabelGenRepository.java  # 테이블 정의서 조회 및 테이블 생성 DDL 실행
+│       │   └── UserRepository.java         # 회원 정보 조회 및 회원 관련 DB 작업
+│       │
+│       ├── run
+│       │   └── Application.java            # 프로그램 진입점 및 전체 메뉴 흐름 관리
+│       │
+│       └── view
+│           ├── DL_view.java                # 데이터 적재 관련 사용자 입력 및 결과 출력
+│           ├── TG_TableView.java           # 테이블 정의서 입력 및 테이블 생성 관련 입출력
+│           └── UserView.java               # 회원가입 및 로그인 관련 사용자 입출력
+│   
+└── resources
+    ├── db
+    │   └── mapper
+    │       ├── DL_InsertTable.xml          # 데이터 적재 관련 SQL 정의
+    │       ├── DL_SelectColNm.xml          # 데이터 적재·추출에 필요한 컬럼 조회 SQL 정의
+    │       ├── DUL_SelectAllFromTable.xml  # 테이블 데이터 추출 관련 SQL 정의
+    │       ├── TG_DefinitionInsert.xml     # 사용자 정의서 데이터를 저장하는 SQL 정의
+    │       ├── TG_TableCreate.xml          # 사용자 정의서 조회 등에 사용하는 SQL 정의
+    │       └── UserSelect.xml              # 회원 조회 관련 SQL 정의
+    │
+    └── db.properties
+```
+---
+2. 전체 핵심 메소드 연결 관계
+2.1 CSV 기반 테이블 생성
+```text
+createTablesFromCsv()
+        │
+        ├── 기존 정의서 중복 여부 체크 후 삭제
+        │
+        ├── readCsv()
+        │      └── CSV 정의서 DB 등록
+        │
+        └── createTables()
+               │
+               ├── findDefinitions()
+               │      └── 정의서 상세 조회
+               │
+               ├── groupByTable()
+               │      └── 테이블별 정의서 그룹화
+               │
+               ├── buildCreateTable()
+               │      └── CREATE TABLE DDL 조립
+               │
+               └── execute()
+                      └── 실제 DB 테이블 생성
+```
+2.2 데이터 LOAD
+```text
+StartDL_Controller()
+        │
+        ├── selectColnmDTOList()
+        │      └── 대상 테이블 컬럼 조회
+        │
+        └── DL_Start()
+               └── Loadcsv()
+                      └── CSV 데이터 적재
+```
+2.3 데이터 UNLOAD
+```text
+StartDUL_Controller()
+        │
+        ├── selectColnmDTOList()
+        │      └── 대상 테이블 컬럼 조회
+        │
+        └── DataUnload()
+               └── DB 데이터를 CSV 파일로 내보내기
+```
+2.4 로그인
+```text
+login()
+   │
+   ├── selectMemberByMemberId()
+   │      └── 회원 정보 조회
+   │
+   ├── 아이디 및 비밀번호 검증
+   │
+   └── loginUser 저장
+          │
+          └── getLoginUser()
+                 └── 로그인 정보 제공
+```
+---
+3. 핵심 메소드 요약
+기능 구분	핵심 메소드	핵심 역할
+로그인	`login()`	사용자 인증 및 로그인 정보 저장
+로그인 정보 제공	`getLoginUser()`	로그인 사용자 정보 반환
+정의서 목록 조회	`usercreatedTables()`	사용자별(ID) 테이블 정의서 목록 조회
+정의서 상세 조회	`findDefinitions()`	테이블 생성에 필요한 상세 정의(컬럼 정보) 조회
+CSV 정의서 등록	`readCsv()`	CSV 데이터를 정의서 테이블에 저장
+테이블별 그룹화	`groupByTable()`	테이블명 기준으로 컬럼 정보 분류
+DDL 조립	`buildCreateTable()`	사용자 기반 정의서를 DDL 쿼리문으로 변환
+DDL 실행	`execute()`	실제 DB 테이블 생성 SQL 실행
+CSV 기반 테이블 생성	`createTablesFromCsv()`	정의서 삭제·등록·테이블 생성 통합
+데이터 LOAD	`StartDL_Controller()`	CSV 데이터의 대상 컬럼 DB 적재 제어
+데이터 UNLOAD	`StartDUL_Controller()`	DB 데이터의 대상 컬럼 CSV 내보내기 제어
+---
+3. 아키텍처 요약
+```text
+
+┌─────────────────────────────────────────────────────────────┐
+│                       Application                           │
+│  프로그램 실행 및 메뉴 관리                                   │
+│  사용자 입력 및 처리 결과 출력                                │
+└────────────────────────────┬────────────────────────────────┘
+                             │ 요청 전달
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Controller 계층                         │
+│  UserController  /  DL_Controller                           │
+│  DUL_Controller  /  TG_TableGenController                   │
+│  입력 검증, 기능 실행 순서 제어, 결과 반환                     │
+└───────────────┬─────────────────────────────┬───────────────┘
+                │                             │
+                ▼                             ▼
+┌──────────────────────────┐    ┌────────────────────────────┐
+│        Model / DTO       │    │      Repository 계층        │
+│                          │    │                            │
+│  UserDto                 │    │  UserRepository            │
+│  DL_SelectColnmDTO       │    │  DL_Repository             │
+│  TG_TableDefDto          │    │  DUL_Repository            │
+│                          │    │  TG_TableGenRepository     │
+│  계층 간 데이터 전달      │    │  DB 작업 및 CSV 입출력       │
+└──────────────────────────┘    └──────────────┬─────────────┘
+                                              │
+                         ┌────────────────────┴──────────────────┐
+                         │                                       │
+                         ▼                                       ▼
+              ┌─────────────────────┐                ┌─────────────────────┐
+              │  SQL XML Mapper     │                │  DB 연결 설정        │
+              │                     │                │                     │
+              │  UserSelect.xml     │                │  db.properties      │
+              │  DL_SelectColNm.xml │                │  접속 정보 관리      │
+              │  DL_InsertTable.xml │                └──────────┬──────────┘
+              │  DUL_SelectAll...xml│                           │
+              │  TG_Definition...xml│                           │
+              │  TG_TableCreate.xml │                           │
+              └──────────┬──────────┘                           │
+                         └──────────────────┬────────────────────┘
+                                            ▼
+                                  ┌─────────────────────┐
+                                  │      Database       │
+                                  │                     │
+                                  │  회원 정보 조회      │
+                                  │  데이터 저장·조회    │
+                                  │  테이블 정의서 저장  │
+                                  │  테이블 생성        │
+                                  └─────────────────────┘
+
+[공통 DB 처리]
+  JDBCTemplate
+    └─ DB 연결 및 JDBC 자원 관리
+```
 
 ```text
 테이블 생성
