@@ -33,7 +33,7 @@ public class Application {
 
             switch (choice) {
                 case 1:
-                    //signup(sc, userController);
+                    signup(sc, userController);
                     break;
                 case 2:
                     if (login(sc, userController)) {
@@ -235,14 +235,14 @@ public class Application {
     public static void signup(Scanner sc, UserController userController) {
         System.out.println();
         System.out.println("===== 회원가입 =====");
-        System.out.print("이름: ");
-        String name = sc.nextLine().trim();
-        System.out.print("나이: ");
-        int age = readInt(sc);
+        System.out.print("사용하실 ID: ");
+        String id = sc.nextLine().trim();
+        System.out.print("사용하실 PASSWORD: ");
+        String pwd = sc.nextLine().trim();
         System.out.print("휴대폰 번호 (예: 010-1234-5678): ");
         String phone = sc.nextLine().trim();
 
-        //userController.signUp(name, age, phone);
+        userController.signUp(id, pwd, phone);
     }
 
     public static boolean login(Scanner sc, UserController userController) {

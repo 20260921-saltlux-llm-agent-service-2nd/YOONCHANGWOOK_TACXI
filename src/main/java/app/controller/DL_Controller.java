@@ -30,7 +30,7 @@ public class DL_Controller {
         boolean result = DL_Start(ColnmDTOList,table_nm,targetPath);
 
         if(result) {
-            DdlView.displayMessage("LOAD가 성공적으로 완료었습니다.");
+            DdlView.displayMessage("LOAD가 성공적으로 완료되었습니다.");
         } else {
             DdlView.displayMessage("LOAD가 실패하였습니다.");
 

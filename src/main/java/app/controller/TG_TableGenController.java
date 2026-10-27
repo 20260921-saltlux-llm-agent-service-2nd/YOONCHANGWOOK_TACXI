@@ -2,6 +2,7 @@ package app.controller;
 import app.model.DTO.TG_TableDefDto;
 import app.model.DTO.UserDto;
 import app.repository.TG_TabelGenRepository;
+import app.view.TG_TableView;
 
 
 import java.io.*;
@@ -17,12 +18,14 @@ public class TG_TableGenController {
 
     // ===================== 1. 의존 객체 =====================
     private final TG_TabelGenRepository tgRepo = new TG_TabelGenRepository();
+    private final TG_TableView tg_view = new TG_TableView();
     private final Properties prop = new Properties();
 
     // 1-1. 회원 ID로 유저가 생성한 테이블 정의서 조회
-    public List<TG_TableDefDto> usercreatedTables(String userId) {
+    public boolean usercreatedTables(String userId) {
         try {
-            return tgRepo.userCreatedtables(userId);
+             tg_view.showCreatedTable(tgRepo.userCreatedtables(userId));
+             return true;
         } catch (SQLException e) {
             throw new RuntimeException("테이블 정의서 조회 실패", e);
         }
@@ -91,7 +94,13 @@ public class TG_TableGenController {
             // 2. 크기: CHAR, VARCHAR, DECIMAL, NUMERIC만
             switch (type) {
                 case "CHAR": case "VARCHAR": case "DECIMAL": case "NUMERIC":
-                    if (!isEmpty(d.getColumSize())) createqry.append('(').append(d.getColumSize().trim()).append(')');
+                    if (!isEmpty(d.getColumSize())) {
+                        String size = d.getColumSize().trim()
+                                .replace("\"", "")      // 혹시 붙은 따옴표 제거
+                                .replace(';', ',')      // 13;10 -> 13,10
+                                .replace('/', ',');     // 13/10도 허용
+                        createqry.append('(').append(size).append(')');
+                    }
                     break;
                 default:
                     break;
@@ -193,11 +202,16 @@ public class TG_TableGenController {
                 int i;
                 if(readline.length() !=0) {
 
-                    temp_arr = readline.split(",",0);
+                    // 변경 후
+                    temp_arr = readline.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);   // 따옴표 밖의 쉼표만 구분자로 사용
+
+                    if (temp_arr.length != 11) {
+                        throw new RuntimeException("정의서 컬럼 수 오류(" + temp_arr.length + "개): " + readline);
+                    }
+
                     for (i = 0; i < 11; i++) {
-
-                        psmt.setString(i+1,temp_arr[i].isEmpty() ? null : temp_arr[i] );
-
+                        String val = temp_arr[i].replace("\"", "").trim();   // 따옴표 제거 후 공백 정리
+                        psmt.setString(i+1, val.isEmpty() ? null : val);
                     }
                     psmt.setInt(i+1,loginUser.getMemberSqno());
 

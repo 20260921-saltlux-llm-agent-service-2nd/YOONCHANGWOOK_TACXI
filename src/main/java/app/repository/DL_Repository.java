@@ -125,7 +125,8 @@ public class DL_Repository {
                 // 첫 줄(헤더)과 빈 줄은 건너뜀
                 if (cnt != 0 && readLine.length() != 0) {
 
-                    String[] temp_arr = readLine.split(",", -1);
+
+                    String[] temp_arr = readLine.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
 
 
@@ -138,7 +139,8 @@ public class DL_Repository {
 
                         for (int i = 0; i <col_size; i++) {
                             // 빈 값은 NULL로 저장
-                            psmt.setString(i + 1, temp_arr[i].isEmpty() ? null : temp_arr[i]);
+                            String val = temp_arr[i].replace("\"", "").trim();
+                            psmt.setString(i + 1, val.isEmpty() ? null : val);
                         }
                         psmt.addBatch();
                         batchCnt++;
