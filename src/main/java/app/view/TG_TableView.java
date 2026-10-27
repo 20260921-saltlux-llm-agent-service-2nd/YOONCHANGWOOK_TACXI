@@ -2,6 +2,8 @@ package app.view;
 
 
 
+import app.model.DTO.TG_TableDefDto;
+
 import java.util.*;
 
 public class TG_TableView {
@@ -28,5 +30,13 @@ public class TG_TableView {
             System.out.println((i + 1) + ". 테이블 이름: " + tableNames.get(i));
         }
     }
+    public void showCreatedTable(List<TG_TableDefDto> tableNames) {
+        System.out.println("==== 생성된 테이블 목록 ====");
+
+        for (int i = 0; i < tableNames.size(); i++) {
+            System.out.println((i + 1) + ". 테이블 이름: " + tableNames.get(i).getTableName());
+        }
+    }
+
 
 }

@@ -31,7 +31,7 @@ public class DUL_Controller {
 
         boolean result = dul_repository.DataUnload(ColnmDTOList, table_nm, targetPath);
         if(result) {
-            DdlView.displayMessage("UNLOAD가 성공적으로 완료었습니다.");
+            DdlView.displayMessage("UNLOAD가 성공적으로 완료되었습니다.");
         } else {
             DdlView.displayMessage("UNLOAD가 실패하였습니다.");
 
