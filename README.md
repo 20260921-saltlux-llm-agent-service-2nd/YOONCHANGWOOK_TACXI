@@ -116,7 +116,19 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 테이블 정의서 경로를 입력하고 테이블 생성 결과를 확인하는 화면입니다.
 
-![테이블 생성](./images/create-table.png)
+![테이블 생성](./.image/tabledefin0.png)
+#### 1) 테이블정의서 작성 -  생성하길 원하는 테이블의 정의서를 작성합니다.(테이블명,자료형,칼럼명,자료형의 크기,NULL여부,PK여부,FK여부,참조테이블,참조키,디폴트값,커멘트)
+![테이블 생성](./.image/table_defin.png)
+##### ❗ **반드시 `CSV UTF-8(쉼표로 분리)(*.csv)` 형식으로 저장하세요.**
+> 프로그램이 Java FileReader의 UTF-8 인코딩으로 정의서를 읽기 때문에, 다른 형식으로 저장하면 한글이 깨져 정상적으로 등록되지 않을 수 있습니다.
+![테이블 생성](./.image/table_defin2.png)
+#### 2) 경로입력 -  테이블 정의서가 작성된 경로를 입력해주세요
+![테이블 생성](./.image/table_def_path2.png)
+#### 3) 테이블명 입력 -  테이블 정의서에 입력한 테이블명을 동일하게 입력한후 enter로 실행해주세요
+![테이블 생성](./.image/table_def_path3.png)
+
+#### ✅ 테이블이 생성된 모습
+![테이블 생성](./.image/table_def_path4.png)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -124,7 +136,10 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 테이블 생성 후 데이터 적재 여부를 선택하는 화면입니다.
 
-![DATA LOAD 연동](./images/load-confirm.png)
+![DATA LOAD 연동](./.image/filedataload0.png)
+
+#### DATA LOAD 연동여부를 선택하면 DATA_LOAD를 진행할 수 있습니다.
+[DATA LOAD (Import)](#data-load)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -140,7 +155,13 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 로그인한 사용자가 생성한 테이블 목록을 확인하는 화면입니다.
 
-![생성 테이블 목록](./images/table-list.png)
+![생성 테이블 목록](./.image/table-list.png)
+
+#### 1) 검색을 원하는 ID를 입력합니다.
+![생성 테이블 목록](./.image/usercrtablelist1.png)
+#### ✅ 생성된 테이블이 조회된 모습
+![생성 테이블 목록](./.image/usercrtablelist2.png)
+
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
