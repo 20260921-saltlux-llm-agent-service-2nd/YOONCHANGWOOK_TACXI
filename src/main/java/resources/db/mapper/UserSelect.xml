@@ -10,4 +10,10 @@
         select * from TB_MEMBER
         where MEMBER_ID = ?
     </entry>
+
+    <!-- 회원가입 : 아이디, 핸드폰번호, 비밀번호를 회원 테이블에 저장 (회원번호는 DB가 자동으로 붙임) -->
+    <entry key="insertMember">
+        insert into TB_MEMBER (MEMBER_ID, PHONE, PWD)
+        values (?, ?, ?)
+    </entry>
 </properties>
