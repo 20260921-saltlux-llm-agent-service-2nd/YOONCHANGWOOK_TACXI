@@ -90,11 +90,11 @@ password=사용할 비밀번호
 IntelliJ에서 `src/main/java/app/run/Application.java`를 열고 `main` 메서드를 실행합니다.
 > ❗ 실행 위치(Working directory)가 프로젝트 최상위 폴더여야 합니다. IntelliJ 기본 설정이면 그대로 두면 됩니다.
 6) 사용 순서
-초기화면에서 1. 회원가입으로 계정을 만듭니다.
+1.초기화면에서 회원가입으로 계정을 만듭니다.
 2. 로그인으로 로그인합니다.
-1. 테이블 생성에서 테이블 정의서 CSV의 경로와 테이블명을 입력해 테이블을 만듭니다. (정의서 저장 방법은 테이블 생성 참고)
+3. 테이블 생성에서 테이블 정의서 CSV의 경로와 테이블명을 입력해 테이블을 만듭니다. (정의서 저장 방법은 테이블 생성 참고)
 > 테이블정의서 경로:YOONCHANGWOOK_TACXI/TableDefintionDOC/TableDefinitonDOC_Sample.csv
-3. 테이블 조회에서 생성된 테이블을 확인하고 DATA LOAD(CSV → DB) 또는 DATA UNLOAD(DB → CSV)를 실행합니다.
+4. 테이블 조회에서 생성된 테이블을 확인하고 DATA LOAD(CSV → DB) 또는 DATA UNLOAD(DB → CSV)를 실행합니다.
 
 
 ## 프로그램 구조
