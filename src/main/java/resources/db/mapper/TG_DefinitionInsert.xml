@@ -5,4 +5,12 @@
     ( TABLE_NAME, COL_DATA_TYPE, COLUMN_NM, COLUMN_SIZE, NULL_YN, PK_YN, FK_YN,
     REF_TABLE_NM, REF_COLUMN, DEFAULT_STR, COMMENT,MEMBER_SQNO)
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)</entry>
+
+    <!-- 회원ID에 따른 테이블 생성이력 삭제 조회-->
+    <entry key="tg_deleteDefinitions">
+        DELETE
+        FROM TB_GEN_MAN_MNTR_TABLE
+        WHERE MEMBER_SQNO = ?
+        AND TABLE_NAME = ?
+    </entry>
 </properties>

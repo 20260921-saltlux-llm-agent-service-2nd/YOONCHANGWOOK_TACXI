@@ -2,12 +2,14 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
     <comment>TableGen Repository SQL</comment>
+
+
     <!-- 회원ID에 따른 테이블 조회-->
     <entry key="tg_selectDefinitions">
         SELECT A.*
         FROM TB_GEN_MAN_MNTR_TABLE A join TB_MEMBER B on A.MEMBER_SQNO = B.MEMBER_SQNO
-        WHERE MEMBER_ID = ?
-        AND TABLE_NAME =?
+        WHERE B.MEMBER_ID = ?
+        AND A.TABLE_NAME = ?
         ORDER BY GEN_MNTR_SQNO
     </entry>
 

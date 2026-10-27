@@ -178,11 +178,6 @@ public class Application {
     }
 
     private static boolean createUserTable(Scanner sc, UserController userController) {
-        System.out.println();
-        System.out.println("===== 사용자 테이블 정의서 경로 입력 =====\n");
-        System.out.println("테이블 정의서가 저장된 디렉토리 경로(/으로 구분)를 입력해주세요.");
-        String targetPath = sc.nextLine().trim();
-
         // getLoginUser -> userDto 타입의 메소드로 private인 loginUser을 반환하도록함
         UserDto loginUser = userController.getLoginUser();
 
@@ -192,34 +187,38 @@ public class Application {
             return false;
         }
 
+        System.out.println();
+        System.out.println("===== 사용자 테이블 정의서 경로 입력 =====\n");
+        System.out.println("테이블 정의서가 저장된 디렉토리 경로(/으로 구분)를 입력해주세요.");
+        String targetPath = sc.nextLine().trim();
+
         // 사용자 정의서를 읽고 사용자 정의서 테이블 생성
+        System.out.println("사용자 정의서의 테이블 이름을 입력해주세요.");
+        String tableName = sc.nextLine().trim();
         TG_TableGenController tgTableGenController = new TG_TableGenController();
+        TG_TableView tgView = new TG_TableView();
         try {
-            List<String> created = tgTableGenController.createTablesFromCsv(targetPath, loginUser);
+            List<String> created = tgTableGenController.createTablesFromCsv(targetPath, loginUser, tableName);
 
             if (created.isEmpty()) {
                 System.out.println("생성된 테이블이 없습니다.");
                 return false;
             }
+            tgView.showCreatedTables(created);
+        } catch (RuntimeException e) {
+            System.out.println("테이블 생성 실패: " + e.getMessage());
+            return false;
+        }
 
-            System.out.println("테이블 생성 완료: " + created);
-            return true;
+        // 데이터 적재 여부 확인
+        if (tgView.confirmDataLoad()) {
+            System.out.println("데이터 적재를 시작합니다.");
+            dataload(sc);
 
-
-//        boolean readCsvResult = tgTableGenController.readCsv(targetPath, userController);
-//        System.out.println();
-//        if(readCsvResult) {
-//            tgRepo.findDefinitions()
-//
-//        }
-//            System.out.println("테이블 생성 완료: " + created);
-//            return true
-            // 사용자 정의서 테이블을 읽고 생성
-        System.out.println("===== 테이블 생성 =====\n");
-        TG_TableView tgTableView = new TG_TableView();
-        tgTableView.createTableConsole();
-
-
+        } else {
+            System.out.println("데이터 적재를 취소했습니다.");
+            return false;
+        }
         return true;
     }
 

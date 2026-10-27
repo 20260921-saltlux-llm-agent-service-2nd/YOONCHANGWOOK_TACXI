@@ -2,8 +2,7 @@ package app.controller;
 import app.model.DTO.TG_TableDefDto;
 import app.model.DTO.UserDto;
 import app.repository.TG_TabelGenRepository;
-import app.common.JDBCTemPlate;
-import app.view.TG_TableView;
+
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -33,11 +32,9 @@ public class TG_TableGenController {
     /** 사용자 테이블 정의서 기준으로 DB 생성. 생성된 테이블명 목록 반환, 실패 시 예외 -> 콘솔 관련 기능들 **/
     public List<String> createTables(String userId, String tableName) {
         List<String> created = new ArrayList<>();
-//        StringBuilder createqry =  new StringBuilder();
 
         // 1. Repository에서 정의서 조회
         List<TG_TableDefDto> defs;
-
         try {
             defs = tgRepo.findDefinitions(userId, tableName);
         } catch (SQLException e) {
@@ -57,15 +54,12 @@ public class TG_TableGenController {
             // 그룹핑
             for (Map.Entry<String, List<TG_TableDefDto>> e : byTable.entrySet()) {
                 String ddl = buildCreateTable(e.getKey(), e.getValue());            // DDL 조립
-                System.out.println(ddl);                                            // 테스트용: 만들어진 SQL 확인
+//                System.out.println(ddl);                                            // 테스트용: 만들어진 SQL 확인
                 tgRepo.execute(conn, ddl);                                          // 실행
                 created.add(e.getKey());
             }
         } catch (SQLException ex) {
-//            throw new RuntimeException("테이블 생성 실패 (생성 완료: " + created + ")", ex);
-            // 원인 테스트용
-            System.out.println(ex.getMessage());
-            if (ex.getCause() != null) System.out.println("원인: " + ex.getCause().getMessage());
+            throw new RuntimeException("테이블 생성 실패 (생성 완료: " + created + ")", ex);
         }
         return created;
     }
@@ -145,8 +139,15 @@ public class TG_TableGenController {
             }   // ← if 닫는 중괄호
 
             // 5. COMMENT
-            if (!isEmpty(d.getComment()))
-                createqry.append(" COMMENT '").append(d.getComment().trim()).append('\'');
+            if (!isEmpty(d.getComment())) {
+                String comment = d.getComment().trim()
+                        .replace("\\", "\\\\")
+                        .replace("'", "''");
+
+                createqry.append(" COMMENT '")
+                        .append(comment)
+                        .append("'");
+            }
 
             // 6. PK는 모아만 둠
             if ("Y".equalsIgnoreCase(d.getPkYn())) pks.add("`" + d.getColumnNm() + "`");
@@ -161,14 +162,13 @@ public class TG_TableGenController {
         return createqry.toString();
     }
 
-    public boolean readCsv(String path, UserController userController) {
+    // ===================== 사용자 정의서 csv 읽어 테이블 만드는 기능 =====================
+    public boolean readCsv(String path, UserDto loginUser) {
 
         PreparedStatement psmt = null;
         Connection conn = getConnection();
         String readline ;
         String [] temp_arr ;
-        UserDto loginUser = userController.loginUser;
-        String  tablenm;
 
 
 
@@ -177,6 +177,8 @@ public class TG_TableGenController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+
         // 파일 읽기
         try(BufferedReader br = new BufferedReader(
                 new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8))) {
@@ -213,27 +215,54 @@ public class TG_TableGenController {
             e.printStackTrace();
             return false;
         } finally {
-            //5. 자원 반납
             close(psmt);
             close(conn);
         }
     }
+
+    // ===================== 사용자 정의서 테이블로 최종 DB 테이블 생성하는 기능 =====================
+    public List<String> createTablesFromCsv(String path, UserDto loginUser, String tableName) {
+
+        PreparedStatement psmt = null;
+        Connection conn = getConnection();
+
+        // 1. 로그인 사용자 확인
+        if (loginUser == null) {
+            throw new IllegalArgumentException("로그인한 사용자 정보가 없습니다.");
+        }
+
+        //1-1. 테이블 생성 이력테이블에 있는 중복값 삭제
+        try (FileInputStream fis = new FileInputStream("src/main/java/resources/db/mapper/TG_DefinitionInsert.xml")) {
+            prop.loadFromXML(fis);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        String deleteqry =  prop.getProperty("tg_deleteDefinitions");
+        try {
+            psmt = conn.prepareStatement(deleteqry);
+            psmt.setInt(1,loginUser.getMemberSqno());
+            psmt.setString(2,tableName);
+            psmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            close(psmt);
+            close(conn);
+        }
+
+        // 2. CSV 정의서 DB 등록
+        boolean success = readCsv(path, loginUser);
+
+        if (!success) {
+            throw new RuntimeException("CSV 정의서 등록에 실패했습니다.");
+        }
+
+        // 3. 등록된 정의서를 조회하고 실제 테이블 생성
+        return createTables(loginUser.getMemberId(), tableName);
+    }
+
     private boolean isEmpty(String s) {
         return s == null || s.isBlank() || "null".equalsIgnoreCase(s.trim());
     }
 }
-
-
-/*
-Application (메인 메뉴 루프)
-   ↓ "테이블 생성" 선택
-TG_TableGenView        회원 일련번호 입력 → controller 호출 → 결과 출력 → Y/N 입력
-   ↓
-TG_TableGenController
-   1. Connection 획득           (JDBCTemplate)
-   2. 정의서 조회               (Repository → PreparedStatement + ResultSet)
-   3. 테이블명별 그룹핑          (Map)
-   4. CREATE TABLE 문자열 조립   (XML 템플릿 + String.format)
-   5. DDL 실행                  (Repository → Statement.execute)
-   ↓
-TableGenView        Y → Data Load 호출 / N → 최초 화면*/

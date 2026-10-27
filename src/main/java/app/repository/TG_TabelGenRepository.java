@@ -1,7 +1,6 @@
 package app.repository;
 
 import app.model.DTO.TG_TableDefDto;
-import app.model.DTO.UserDto;
 
 import java.io.*;
 import java.sql.*;
@@ -25,11 +24,9 @@ public class TG_TabelGenRepository {
         Connection conn = getConnection();
 
         String defineQry = P.getProperty("tg_selectDefinitions");
-
         try (PreparedStatement ps = conn.prepareStatement(defineQry) ) {
             ps.setString(1, userid);
             ps.setString(2, table_nm);
-//            ps.setString(2, table_name);
             try (ResultSet rs = ps.executeQuery()) {           // SELECT 실행
                 while (rs.next()) {                            // 한 행씩 이동
                     TG_TableDefDto d = new TG_TableDefDto();
@@ -43,7 +40,7 @@ public class TG_TabelGenRepository {
                     d.setPkYn(Objects.toString(rs.getString("PK_YN"), ""));
                     d.setFkYn(Objects.toString(rs.getString("FK_YN"), ""));
                     d.setRefTableNm(Objects.toString(rs.getString("REF_TABLE_NM"), ""));
-                    d.setRefColumn(Objects.toString(rs.getString("REF_COLMN"), ""));
+                    d.setRefColumn(Objects.toString(rs.getString("REF_COLUMN"), ""));
                     d.setDefaultStr(Objects.toString(rs.getString("DEFAULT_STR"), ""));
                     d.setComment(Objects.toString(rs.getString("COMMENT"), ""));
                     d.setLschgDtm(rs.getString("LSCHG_DTM"));
@@ -53,6 +50,8 @@ public class TG_TabelGenRepository {
         }
         return list;
     }
+
+    // Member ID에서 만든 사용자 정의 정의서 테이블 조회
     public List<TG_TableDefDto> userCreatedtables(String userid) throws SQLException {
 
         List<TG_TableDefDto> list = new ArrayList<>();
