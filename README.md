@@ -78,15 +78,13 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 ## 실행 화면
 
-스크린샷은 아직 등록되지 않았습니다. README.md와 같은 위치의 images 폴더에 아래 파일명으로 이미지를 저장하고, 각 이미지 구문을 감싼 HTML 주석 기호(<!-- 및 -->)를 제거하면 사진이 표시됩니다.
+각 기능의 실행 화면입니다. 이미지는 README.md와 같은 위치의 `images` 폴더에 저장되어 있습니다.
 
 ### 초기화면
 
 회원가입, 로그인, 프로그램 종료를 선택하는 시작 화면입니다.
 
-이미지 등록 예정: images/main.png
-
-<!-- ![초기화면](./images/main.png) -->
+![초기화면](./images/main.png)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -94,9 +92,7 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 아이디, 비밀번호, 전화번호를 입력하는 화면입니다.
 
-이미지 등록 예정: images/signup.png
-
-<!-- ![회원가입](./images/signup.png) -->
+![회원가입](./images/signup.png)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -104,9 +100,8 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 아이디와 비밀번호를 입력하는 화면입니다.
 
-이미지 등록 예정: images/login.png
-
-<!-- ![로그인](./images/login.png) -->
+![로그인](./.image/login.png)
+![로그인](./.image/login2.png)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -114,9 +109,7 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 프로그램 종료 결과 화면입니다.
 
-이미지 등록 예정: images/exit.png
-
-<!-- ![프로그램 종료](./images/exit.png) -->
+![프로그램 종료](./images/exit.png)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -124,9 +117,7 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 테이블 정의서 경로를 입력하고 테이블 생성 결과를 확인하는 화면입니다.
 
-이미지 등록 예정: images/create-table.png
-
-<!-- ![테이블 생성](./images/create-table.png) -->
+![테이블 생성](./images/create-table.png)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -134,9 +125,7 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 테이블 생성 후 데이터 적재 여부를 선택하는 화면입니다.
 
-이미지 등록 예정: images/load-confirm.png
-
-<!-- ![DATA LOAD 연동](./images/load-confirm.png) -->
+![DATA LOAD 연동](./images/load-confirm.png)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -144,9 +133,7 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 생성 테이블 조회와 DATA LOAD·UNLOAD를 선택하는 메뉴 화면입니다.
 
-이미지 등록 예정: images/table-menu.png
-
-<!-- ![테이블 조회](./images/table-menu.png) -->
+![테이블 조회](./images/table-menu.png)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -154,9 +141,7 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 로그인한 사용자가 생성한 테이블 목록을 확인하는 화면입니다.
 
-이미지 등록 예정: images/table-list.png
-
-<!-- ![생성 테이블 목록](./images/table-list.png) -->
+![생성 테이블 목록](./images/table-list.png)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -164,9 +149,11 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 테이블 물리명과 CSV 파일 경로를 입력하고 데이터 적재 결과를 확인하는 화면입니다.
 
-이미지 등록 예정: images/data-load.png
+![DATA LOAD](./.image/Data_load.png)
+![DATA LOAD](./.image/Data_load2.png)
+![DATA LOAD](./.image/Data_load3.png)
+![DATA LOAD](./.image/Data_load4.png)
 
-<!-- ![DATA LOAD](./images/data-load.png) -->
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
 
@@ -174,9 +161,8 @@ MySQL 테이블 → 데이터 조회 → CSV 파일 생성 및 저장
 
 데이터 추출 결과와 CSV 파일 저장 경로를 확인하는 화면입니다.
 
-이미지 등록 예정: images/data-unload.png
-
-<!-- ![DATA UNLOAD](./images/data-unload.png) -->
+![DATA UNLOAD](./.image/Data_unload.png)
+![DATA UNLOAD](./.image/Data_unload2.png)
+![DATA UNLOAD](./.image/Data_unload3.png)
 
 [기능 표로 돌아가기](#주요-내용-및-기능)
-
