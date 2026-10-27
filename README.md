@@ -17,6 +17,85 @@ MySQL에서 초기 데이터를 적재하려면 테이블을 직접 생성하고
 
 테이블 생성부터 데이터 적재·추출까지의 과정을 자동화하여, 사용자가 복잡한 SQL 명령어를 반복해서 작성하는 부담을 줄이는 것을 목표로 합니다. 사전에 정의한 테이블 구조를 활용해 일관된 형식으로 데이터를 관리하고, CSV 파일과 MySQL 간의 데이터 이동을 간소화하고자 합니다.
 
+## 🚀 프로젝트 실행 방법
+1) 사전 준비
+항목	내용
+JDK	21
+IDE	IntelliJ IDEA
+DB	MySQL (본인 PC에 설치)
+빌드 도구	Gradle (프로젝트에 포함된 `gradlew` 사용)
+2) 프로젝트 내려받기
+```bash
+git clone https://github.com/20260921-saltlux-llm-agent-service-2nd/YOONCHANGWOOK_TACXI.git
+```
+IntelliJ에서 `File > Open`으로 내려받은 폴더를 열고, Gradle 동기화가 끝날 때까지 기다립니다.
+3) DB 준비 (로컬 MySQL)
+본인 PC의 MySQL에 접속해 아래 SQL을 순서대로 실행합니다.
+① 데이터베이스와 계정 생성
+```sql
+CREATE DATABASE 사용할DATABASE DEFAULT CHARACTER SET utf8mb4;
+
+CREATE USER '사용할 계정'@'localhost' IDENTIFIED BY '사용할 비밀번호';
+GRANT ALL PRIVILEGES ON 사용할DATABASE.* TO '사용할계정'@'localhost';
+FLUSH PRIVILEGES;
+```
+② 회원 테이블 생성
+```sql
+create table tacxi_db.tb_member
+(
+    MEMBER_SQNO int auto_increment
+        primary key,
+    MEMBER_ID   varchar(20)                        null,
+    PHONE       varchar(20)                        null,
+    PWD         varchar(20)                        not null,
+    LSCHG_DTM   datetime default CURRENT_TIMESTAMP null
+);
+```
+③ 테이블 정의서 저장 테이블 생성
+```sql
+create table tacxi_db.tb_gen_man_mntr_table
+(
+    GEN_MNTR_SQNO bigint auto_increment,
+    MEMBER_SQNO   int                                not null,
+    TABLE_NAME    varchar(200)                       not null,
+    COL_DATA_TYPE varchar(200)                       null,
+    COLUMN_NM     varchar(200)                       not null,
+    COLUMN_SIZE   varchar(200)                       null,
+    NULL_YN       char                               not null,
+    PK_YN         char                               null,
+    FK_YN         char                               null,
+    REF_TABLE_NM  varchar(200)                       null,
+    REF_COLUMN    varchar(100)                       null,
+    DEFAULT_STR   varchar(200)                       null,
+    COMMENT       varchar(200)                       null,
+    LSCHG_DTM     datetime default CURRENT_TIMESTAMP null,
+    primary key (GEN_MNTR_SQNO, TABLE_NAME),
+    constraint FK_TB_MEMBER_TO_TB_GEN_MAN_MNTR_TABLE_1
+        foreign key (MEMBER_SQNO) references tacxi_db.tb_member (MEMBER_SQNO)
+);
+
+create index IDX_GEN_MNTR_MEMBER_SQNO
+    on tacxi_db.tb_gen_man_mntr_table (MEMBER_SQNO);
+```
+> ❗ `tb_member`를 먼저 만들어야 합니다. `tb_gen_man_mntr_table`이 `tb_member`를 참조(FK)하므로 순서가 바뀌면 오류가 납니다.
+4) DB 접속 정보 설정
+`src/main/resources/db.properties` 파일을 아래 내용으로 작성합니다.
+```properties
+driver=com.mysql.cj.jdbc.Driver
+url=jdbc:mysql://localhost:3306/사용할DATABASE
+user=사용할 계정
+password=사용할 비밀번호
+```
+5) 프로그램 실행
+IntelliJ에서 `src/main/java/app/run/Application.java`를 열고 `main` 메서드를 실행합니다.
+> ❗ 실행 위치(Working directory)가 프로젝트 최상위 폴더여야 합니다. IntelliJ 기본 설정이면 그대로 두면 됩니다.
+6) 사용 순서
+초기화면에서 1. 회원가입으로 계정을 만듭니다.
+2. 로그인으로 로그인합니다.
+1. 테이블 생성에서 테이블 정의서 CSV의 경로와 테이블명을 입력해 테이블을 만듭니다. (정의서 저장 방법은 테이블 생성 참고)
+2. 테이블 조회에서 생성된 테이블을 확인하고 DATA LOAD(CSV → DB) 또는 DATA UNLOAD(DB → CSV)를 실행합니다.
+
+
 ## 프로그램 구조
 
 프로그램은 테이블 생성, 데이터 적재, 데이터 추출 기능으로 구성됩니다.
