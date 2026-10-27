@@ -39,4 +39,10 @@ public class UserController {
         loginUser = userDto;
         return true;
     }
+
+    // Application에서 로그인 정보 접근, TableGenController에서의 로그인정보 접근
+    public UserDto getLoginUser() {
+        return loginUser;
+    }
+
 }

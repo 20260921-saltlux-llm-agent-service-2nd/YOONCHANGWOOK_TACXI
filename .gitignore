@@ -6,7 +6,7 @@ build/
 .kotlin
 
 
-db.properties
+src/main/java/resources/db/db.properties
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml

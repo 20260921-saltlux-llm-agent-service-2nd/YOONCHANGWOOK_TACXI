@@ -1,16 +1,19 @@
 package app.run;
 
-import app.controller.DL_Controller;
-import app.controller.DUL_Controller;
-import app.controller.UserController;
+import app.controller.*;
+import app.model.DTO.UserDto;
+import app.repository.TG_TabelGenRepository;
 import app.view.TG_TableView;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class Application {
 
     public static void main(String[] args) {
+
+
 
         try (Scanner sc = new Scanner(System.in)) {
             UserController controller = new UserController();
@@ -34,7 +37,7 @@ public class Application {
                     break;
                 case 2:
                     if (login(sc, userController)) {
-                        midCatMenu(sc);
+                        midCatMenu(sc, userController);
                     } else {
                         System.out.println("로그인에 실패하였습니다. 다시 입력해주세요.");
                     }
@@ -48,7 +51,7 @@ public class Application {
         }
     }
 
-    private static void midCatMenu(Scanner sc) {
+    private static void midCatMenu(Scanner sc, UserController userController) {
         while (true) {
             printMidCatMenu();
             int choice = readInt(sc);
@@ -56,8 +59,9 @@ public class Application {
             switch (choice) {
                 case 1:
                     // 테이블 생성
-                    TG_TableView tgView = new TG_TableView();
-                    tgView.createTableConsole();
+                    if (createUserTable(sc,userController)) {
+
+                    };
                     break;
                 case 2:
                     tableMenu(sc);
@@ -78,16 +82,20 @@ public class Application {
             switch (choice) {
                 case 1:
                     // 생성한 테이블 조회
-                    break;
+                    if (usercreatedTable(sc)) {
+                        break;
+                    } else {
+                        break;
+                    }
                 case 2:
-                    if(dataload(sc)) {
+                    if (dataload(sc)) {
                         return;
                     } else {
                         break;
                     }
                 case 3:
                     // 데이터 UNLOAD dataunload
-                    if(dataunload(sc)) {
+                    if (dataunload(sc)) {
                         return;
                     } else {
                         break;
@@ -127,6 +135,7 @@ public class Application {
         System.out.println("9. 이전 메뉴로");
         System.out.print("선택: ");
     }
+
     private static boolean dataload(Scanner sc) {
         System.out.println();
         System.out.println("===== DataLoad =====\n");
@@ -137,11 +146,10 @@ public class Application {
         System.out.println("Load프로그램을 호출중입니다, 기다려 주세요");
         DL_Controller dlController = new DL_Controller();
 
-        boolean result = dlController.StartDL_Controller(table_nm,targetPath);
-
+        boolean result = dlController.StartDL_Controller(table_nm, targetPath);
         return result;
-
     }
+
     private static boolean dataunload(Scanner sc) {
         System.out.println();
         System.out.println("===== dataunload =====\n");
@@ -152,10 +160,66 @@ public class Application {
         System.out.println("UnLoad프로그램을 호출중입니다, 기다려 주세요");
         DUL_Controller dulController = new DUL_Controller();
 
-        boolean result = dulController.StartDUL_Controller(table_nm,targetPath);
+        boolean result = dulController.StartDUL_Controller(table_nm, targetPath);
 
         return result;
 
+    }
+
+    private static boolean usercreatedTable(Scanner sc) {
+        System.out.println();
+        System.out.println("===== 생성한 테이블 조회 =====\n");
+        System.out.println("회원 ID를 입력해주세요.");
+        String userId = sc.nextLine().trim();
+        System.out.println();
+        TG_TableGenController tgTableGenController = new TG_TableGenController();
+        tgTableGenController.usercreatedTables(userId);
+        return true;
+    }
+
+    private static boolean createUserTable(Scanner sc, UserController userController) {
+        // getLoginUser -> userDto 타입의 메소드로 private인 loginUser을 반환하도록함
+        UserDto loginUser = userController.getLoginUser();
+
+        // 로그인 상태 검증
+        if (loginUser == null) {
+            System.out.println("로그인이 필요합니다.");
+            return false;
+        }
+
+        System.out.println();
+        System.out.println("===== 사용자 테이블 정의서 경로 입력 =====\n");
+        System.out.println("테이블 정의서가 저장된 디렉토리 경로(/으로 구분)를 입력해주세요.");
+        String targetPath = sc.nextLine().trim();
+
+        // 사용자 정의서를 읽고 사용자 정의서 테이블 생성
+        System.out.println("사용자 정의서의 테이블 이름을 입력해주세요.");
+        String tableName = sc.nextLine().trim();
+        TG_TableGenController tgTableGenController = new TG_TableGenController();
+        TG_TableView tgView = new TG_TableView();
+        try {
+            List<String> created = tgTableGenController.createTablesFromCsv(targetPath, loginUser, tableName);
+
+            if (created.isEmpty()) {
+                System.out.println("생성된 테이블이 없습니다.");
+                return false;
+            }
+            tgView.showCreatedTables(created);
+        } catch (RuntimeException e) {
+            System.out.println("테이블 생성 실패: " + e.getMessage());
+            return false;
+        }
+
+        // 데이터 적재 여부 확인
+        if (tgView.confirmDataLoad()) {
+            System.out.println("데이터 적재를 시작합니다.");
+            dataload(sc);
+
+        } else {
+            System.out.println("데이터 적재를 취소했습니다.");
+            return false;
+        }
+        return true;
     }
 
 
