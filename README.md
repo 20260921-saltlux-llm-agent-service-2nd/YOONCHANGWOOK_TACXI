@@ -41,7 +41,7 @@ FLUSH PRIVILEGES;
 ```
 ② 회원 테이블 생성
 ```sql
-create table tacxi_db.tb_member
+create table 사용할DATABASE.tb_member
 (
     MEMBER_SQNO int auto_increment
         primary key,
@@ -53,7 +53,7 @@ create table tacxi_db.tb_member
 ```
 ③ 테이블 정의서 저장 테이블 생성
 ```sql
-create table tacxi_db.tb_gen_man_mntr_table
+create table 사용할DATABASE.tb_gen_man_mntr_table
 (
     GEN_MNTR_SQNO bigint auto_increment,
     MEMBER_SQNO   int                                not null,
@@ -75,7 +75,7 @@ create table tacxi_db.tb_gen_man_mntr_table
 );
 
 create index IDX_GEN_MNTR_MEMBER_SQNO
-    on tacxi_db.tb_gen_man_mntr_table (MEMBER_SQNO);
+    on 사용할DATABASE.tb_gen_man_mntr_table (MEMBER_SQNO);
 ```
 > ❗ `tb_member`를 먼저 만들어야 합니다. `tb_gen_man_mntr_table`이 `tb_member`를 참조(FK)하므로 순서가 바뀌면 오류가 납니다.
 4) DB 접속 정보 설정
