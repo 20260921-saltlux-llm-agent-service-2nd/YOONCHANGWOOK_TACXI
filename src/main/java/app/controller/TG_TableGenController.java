@@ -1,26 +1,57 @@
 package app.controller;
-import app.common.TG_SqlStore;
 import app.model.DTO.TG_TableDefDto;
+import app.model.DTO.UserDto;
 import app.repository.TG_TabelGenRepository;
-import app.common.JDBCTemPlate;
 
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
 
+import static app.common.JDBCTemPlate.close;
+import static app.common.JDBCTemPlate.getConnection;
+
 
 public class TG_TableGenController {
+
     // ===================== 1. 의존 객체 =====================
     private final TG_TabelGenRepository tgRepo = new TG_TabelGenRepository();
+    private final Properties prop = new Properties();
+
+    // 1-1. 회원 ID로 유저가 생성한 테이블 정의서 조회
+    public List<TG_TableDefDto> usercreatedTables(String userId) {
+        try {
+            return tgRepo.userCreatedtables(userId);
+        } catch (SQLException e) {
+            throw new RuntimeException("테이블 정의서 조회 실패", e);
+        }
+    }
 
     // ===================== 2. 공개 메서드 (View에서 호출) =====================
     /** 사용자 테이블 정의서 기준으로 DB 생성. 생성된 테이블명 목록 반환, 실패 시 예외 -> 콘솔 관련 기능들 **/
-    public List<String> createTables(int memberSqno) {
+    public List<String> createTables(String userId, String tableName) {
         List<String> created = new ArrayList<>();
 
-        try (Connection conn = JDBCTemPlate.getConnection()) {
-            List<TG_TableDefDto> defs = tgRepo.findDefinitions(conn, memberSqno);   // Member 번호에 해당하는 테이블 읽기
-            Map<String, List<TG_TableDefDto>> byTable = groupByTable(defs);         // 그룹핑
+        // 1. Repository에서 정의서 조회
+        List<TG_TableDefDto> defs;
+        try {
+            defs = tgRepo.findDefinitions(userId, tableName);
+        } catch (SQLException e) {
+            throw new RuntimeException("정의서 조회 실패", e);
+        }
 
+        // 2. 조회 결과 검증
+        if (defs == null || defs.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "테이블 정의서가 존재하지 않습니다.");
+        }
+
+        try (Connection conn = getConnection()) {
+            // dfs dto 리스트에 담긴 테이블 내용 읽기
+            Map<String, List<TG_TableDefDto>> byTable = groupByTable(defs);
+
+            // 그룹핑
             for (Map.Entry<String, List<TG_TableDefDto>> e : byTable.entrySet()) {
                 String ddl = buildCreateTable(e.getKey(), e.getValue());            // DDL 조립
 //                System.out.println(ddl);                                            // 테스트용: 만들어진 SQL 확인
@@ -29,9 +60,6 @@ public class TG_TableGenController {
             }
         } catch (SQLException ex) {
             throw new RuntimeException("테이블 생성 실패 (생성 완료: " + created + ")", ex);
-            // 원인 테스트용
-//            System.out.println(ex.getMessage());
-//            if (ex.getCause() != null) System.out.println("원인: " + ex.getCause().getMessage());
         }
         return created;
     }
@@ -46,52 +74,195 @@ public class TG_TableGenController {
     }
 
     // ===================== 4. DDL 조립 =====================
-    private String buildCreateTable(String tableName, List<TG_TableDefDto> cols) {
-        List<String> defs = new ArrayList<>();
-        List<String> pks  = new ArrayList<>();
+    private String buildCreateTable(String tableName, List<TG_TableDefDto> defs) {
+        StringBuilder createqry = new StringBuilder();
+        List<String> pks = new ArrayList<>();                    // PK 컬럼 모음
 
-        for (TG_TableDefDto c : cols) {
-            // 자료형(자료형크기) 조각
-            String type  = c.getColDataType() + (c.getColum().isEmpty() ?   "" : "(" + c.getColum() + ")");
+        createqry.append("CREATE TABLE `").append(tableName).append("` (");
 
-            // NULL 여부 조각
-            String nullYn = "Y".equalsIgnoreCase(c.getNullYn()) ? "NULL" : "NOT NULL";
+        for (int i = 0; i < defs.size(); i++) {
+            TG_TableDefDto d = defs.get(i);
+            String type = d.getColDataType().trim().toUpperCase();     // switch용 (기본값은 대문자로 바꾸지 않음)
 
-            // DEFAULT 여부 조각
-            String dflt  = c.getDefaultStr().isEmpty() ? "" : TG_SqlStore.get("tg_defaultDef", c.getDefaultStr());
+            // 1. 컬럼 앞 쉼표 (첫 컬럼은 제외) + 컬럼명 + 자료형
+            createqry.append(i > 0 ? ",\n  " : "\n  ");
+            createqry.append('`').append(d.getColumnNm()).append("` ").append(type);
 
-            // COMMENT 여부 조각
-            String cmt = c.getComment().isEmpty() ? "" : TG_SqlStore.get("tg_commentDef", c.getComment());
+            // 2. 크기: CHAR, VARCHAR, DECIMAL, NUMERIC만
+            switch (type) {
+                case "CHAR": case "VARCHAR": case "DECIMAL": case "NUMERIC":
+                    if (!isEmpty(d.getColumSize())) createqry.append('(').append(d.getColumSize().trim()).append(')');
+                    break;
+                default:
+                    break;
+            }
 
-            // 조각문들 조립
-            defs.add(TG_SqlStore.get("tg_columnDef", c.getColumnNm(), type, nullYn, dflt, cmt));
+            // 3. NULL 여부 (Y = 허용)
+            createqry.append("Y".equalsIgnoreCase(d.getNullYn()) ? " NULL" : " NOT NULL");
 
-            // PK 여부 조각
-            if ("Y".equals(c.getPkYn()))
-                pks.add("`" + c.getColumnNm() + "`");
-        }
-        /** 모든 컬럼을 완성하고 한번만 실행 **/
-        // DATETIME 조각
-        defs.add(TG_SqlStore.get("tg_lschgDtm"));
+            // 4. DEFAULT / AUTO_INCREMENT
+            if (!isEmpty(d.getDefaultStr())) {
+                String v = d.getDefaultStr().trim();                   // 원본 유지
 
-        // PK 조각 최종 조각 완성 후 조립
+                switch (type) {
+                    // ----- 숫자 -----
+                    case "TINYINT": case "SMALLINT": case "MEDIUMINT": case "INT": case "INTEGER":
+                    case "BIGINT": case "DECIMAL": case "NUMERIC": case "FLOAT": case "DOUBLE":
+                        if ("AUTO_INCREMENT".equalsIgnoreCase(v)) createqry.append(" AUTO_INCREMENT");
+                        else                                      createqry.append(" DEFAULT ").append(v);
+                        break;
+
+                    // ----- 문자 -----
+                    case "CHAR": case "VARCHAR":
+                        createqry.append(" DEFAULT '").append(v).append('\'');
+                        break;
+
+                    // ----- 날짜/시간 -----
+                    case "DATETIME": case "TIMESTAMP":
+                        if ("CURRENT_TIMESTAMP".equalsIgnoreCase(v)) createqry.append(" DEFAULT CURRENT_TIMESTAMP");
+                        else                                         createqry.append(" DEFAULT '").append(v).append('\'');
+                        break;
+
+                    case "DATE":
+                        if ("CURDATE()".equalsIgnoreCase(v)) createqry.append(" DEFAULT (CURDATE())");
+                        else                                 createqry.append(" DEFAULT '").append(v).append('\'');
+                        break;
+
+                    case "TIME": case "YEAR":
+                        createqry.append(" DEFAULT '").append(v).append('\'');
+                        break;
+
+                    // ----- 그 외 (TEXT, BLOB, JSON ...): DEFAULT 사용 불가 → 생략 -----
+                    default:
+                        break;
+                }
+            }   // ← if 닫는 중괄호
+
+            // 5. COMMENT
+            if (!isEmpty(d.getComment())) {
+                String comment = d.getComment().trim()
+                        .replace("\\", "\\\\")
+                        .replace("'", "''");
+
+                createqry.append(" COMMENT '")
+                        .append(comment)
+                        .append("'");
+            }
+
+            // 6. PK는 모아만 둠
+            if ("Y".equalsIgnoreCase(d.getPkYn())) pks.add("`" + d.getColumnNm() + "`");
+        }   // ← for 닫는 중괄호
+
+        // 테이블당 한 번
+        createqry.append(",\n  `LSCHG_DTM` DATETIME DEFAULT CURRENT_TIMESTAMP");
         if (!pks.isEmpty())
-            defs.add(TG_SqlStore.get("tg_primaryKey", String.join(", ", pks)));
+            createqry.append(",\n  PRIMARY KEY (").append(String.join(", ", pks)).append(")");
 
-        return TG_SqlStore.get("tg_createTable", tableName, String.join(",\n  ", defs));
+        createqry.append("\n)");
+        return createqry.toString();
+    }
+
+    // ===================== 사용자 정의서 csv 읽어 테이블 만드는 기능 =====================
+    public boolean readCsv(String path, UserDto loginUser) {
+
+        PreparedStatement psmt = null;
+        Connection conn = getConnection();
+        String readline ;
+        String [] temp_arr ;
+
+
+
+        try (FileInputStream fis = new FileInputStream("src/main/java/resources/db/mapper/TG_DefinitionInsert.xml")) {
+            prop.loadFromXML(fis);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        // 파일 읽기
+        try(BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8))) {
+
+
+            String qry = prop.getProperty("tg_insertDefinition");
+            psmt = conn.prepareStatement(qry);
+            br.readLine();
+
+            while((readline = br.readLine()) != null) {
+
+                int i;
+                if(readline.length() !=0) {
+
+                    temp_arr = readline.split(",",0);
+                    for (i = 0; i < 11; i++) {
+
+                        psmt.setString(i+1,temp_arr[i].isEmpty() ? null : temp_arr[i] );
+
+                    }
+                    psmt.setInt(i+1,loginUser.getMemberSqno());
+
+                    psmt.executeUpdate();
+                }
+
+            }
+            return true;
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            close(psmt);
+            close(conn);
+        }
+    }
+
+    // ===================== 사용자 정의서 테이블로 최종 DB 테이블 생성하는 기능 =====================
+    public List<String> createTablesFromCsv(String path, UserDto loginUser, String tableName) {
+
+        PreparedStatement psmt = null;
+        Connection conn = getConnection();
+
+        // 1. 로그인 사용자 확인
+        if (loginUser == null) {
+            throw new IllegalArgumentException("로그인한 사용자 정보가 없습니다.");
+        }
+
+        //1-1. 테이블 생성 이력테이블에 있는 중복값 삭제
+        try (FileInputStream fis = new FileInputStream("src/main/java/resources/db/mapper/TG_DefinitionInsert.xml")) {
+            prop.loadFromXML(fis);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        String deleteqry =  prop.getProperty("tg_deleteDefinitions");
+        try {
+            psmt = conn.prepareStatement(deleteqry);
+            psmt.setInt(1,loginUser.getMemberSqno());
+            psmt.setString(2,tableName);
+            psmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            close(psmt);
+            close(conn);
+        }
+
+        // 2. CSV 정의서 DB 등록
+        boolean success = readCsv(path, loginUser);
+
+        if (!success) {
+            throw new RuntimeException("CSV 정의서 등록에 실패했습니다.");
+        }
+
+        // 3. 등록된 정의서를 조회하고 실제 테이블 생성
+        return createTables(loginUser.getMemberId(), tableName);
+    }
+
+    private boolean isEmpty(String s) {
+        return s == null || s.isBlank() || "null".equalsIgnoreCase(s.trim());
     }
 }
-
-/*
-Application (메인 메뉴 루프)
-   ↓ "테이블 생성" 선택
-TG_TableGenView        회원 일련번호 입력 → controller 호출 → 결과 출력 → Y/N 입력
-   ↓
-TG_TableGenController
-   1. Connection 획득           (JDBCTemplate)
-   2. 정의서 조회               (Repository → PreparedStatement + ResultSet)
-   3. 테이블명별 그룹핑          (Map)
-   4. CREATE TABLE 문자열 조립   (XML 템플릿 + String.format)
-   5. DDL 실행                  (Repository → Statement.execute)
-   ↓
-TableGenView        Y → Data Load 호출 / N → 최초 화면*/

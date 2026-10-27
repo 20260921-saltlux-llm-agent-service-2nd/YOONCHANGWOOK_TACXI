@@ -70,4 +70,9 @@ public class UserController {
             return false;
         }
     }
+    // Application에서 로그인 정보 접근, TableGenController에서의 로그인정보 접근
+    public UserDto getLoginUser() {
+        return loginUser;
+    }
+
 }
